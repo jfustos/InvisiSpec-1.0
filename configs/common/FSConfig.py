@@ -1,4 +1,4 @@
-# Copyright (c) 2010-2012, 2015-2017 ARM Limited
+# Copyright (c) 2010-2012, 2015-2018 ARM Limited
 # All rights reserved.
 #
 # The license below extends only to copyright in the software and shall
@@ -38,6 +38,8 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Authors: Kevin Lim
+
+from __future__ import print_function
 
 from m5.objects import *
 from Benchmarks import *
@@ -128,8 +130,8 @@ def makeLinuxAlphaSystem(mem_mode, mdesc=None, ruby=False, cmdline=None):
     self.intrctrl = IntrControl()
     self.mem_mode = mem_mode
     self.terminal = Terminal()
-    self.kernel = binary('alpha-vmlinux_2.6.27')
-    self.pal = binary('tsb_osfpal')
+    self.kernel = binary('vmlinux')
+    self.pal = binary('ts_osfpal')
     self.console = binary('console')
     if not cmdline:
         cmdline = 'root=/dev/hda1 console=ttyS0'
@@ -259,7 +261,8 @@ def makeArmSystem(mem_mode, machine_type, num_cpus=1, mdesc=None,
 
     if isinstance(self.realview, VExpress_EMM64):
         if os.path.split(mdesc.disk())[-1] == 'linux-aarch32-ael.img':
-            print "Selected 64-bit ARM architecture, updating default disk image..."
+            print("Selected 64-bit ARM architecture, updating default "
+                  "disk image...")
             mdesc.diskname = 'linaro-minimal-aarch64.img'
 
 
@@ -301,7 +304,7 @@ def makeArmSystem(mem_mode, machine_type, num_cpus=1, mdesc=None,
 
     if bare_metal:
         # EOT character on UART will end the simulation
-        self.realview.uart.end_on_eot = True
+        self.realview.uart[0].end_on_eot = True
     else:
         if machine_type in default_kernels:
             self.kernel = binary(default_kernels[machine_type])
@@ -323,8 +326,10 @@ def makeArmSystem(mem_mode, machine_type, num_cpus=1, mdesc=None,
         # iobus, as gem5's membus is only used for initialization and
         # SST doesn't use it.  Attaching nvmem to iobus solves this issue.
         # During initialization, system_port -> membus -> iobus -> nvmem.
-        if external_memory or ruby:
+        if external_memory:
             self.realview.setupBootLoader(self.iobus,  self, binary)
+        elif ruby:
+            self.realview.setupBootLoader(None, self, binary)
         else:
             self.realview.setupBootLoader(self.membus, self, binary)
         self.gic_cpu_addr = self.realview.gic.cpu_addr
@@ -383,8 +388,6 @@ def makeArmSystem(mem_mode, machine_type, num_cpus=1, mdesc=None,
     elif ruby:
         self._dma_ports = [ ]
         self.realview.attachOnChipIO(self.iobus, dma_ports=self._dma_ports)
-        # Force Ruby to treat the boot ROM as an IO device.
-        self.realview.nvmem.in_addr_map = False
         self.realview.attachIO(self.iobus, dma_ports=self._dma_ports)
     else:
         self.realview.attachOnChipIO(self.membus, self.bridge)
@@ -554,11 +557,11 @@ def makeX86System(mem_mode, numCPUs=1, mdesc=None, self=None, Ruby=False):
     self.intrctrl = IntrControl()
 
     # Disks
-    disk0 = CowIdeDisk(driveID='master')
-    disk2 = CowIdeDisk(driveID='master')
-    disk0.childImage(mdesc.disk())
-    disk2.childImage(disk('linux-bigswap2.img'))
-    self.pc.south_bridge.ide.disks = [disk0, disk2]
+    #disk0 = CowIdeDisk(driveID='master')
+    #disk2 = CowIdeDisk(driveID='master')
+    #disk0.childImage(mdesc.disk())
+    #disk2.childImage(disk('linux-bigswap2.img'))
+    #self.pc.south_bridge.ide.disks = [disk0, disk2]
 
     # Add in a Bios information structure.
     structures = [X86SMBiosBiosInformation()]
@@ -674,9 +677,9 @@ def makeLinuxX86System(mem_mode, numCPUs=1, mdesc=None, Ruby=False,
     # Command line
     if not cmdline:
         cmdline = 'earlyprintk=ttyS0 console=ttyS0 lpj=7999923 root=/dev/hda1'
-    self.boot_osflags = fillInCmdline(mdesc, cmdline)
-    if self.kernel is None:
-        self.kernel = binary('x86_64-vmlinux-2.6.22.9')
+    #self.boot_osflags = fillInCmdline(mdesc, cmdline)
+    self.boot_osflags = cmdline
+    self.kernel = binary('/home/jacob/test_kernel/linux-4.18.12/vmlinux')
     return self
 
 

@@ -1034,7 +1034,11 @@ DefaultCommit<Impl>::commitInsts()
 
         DPRINTF(Commit, "Trying to commit head instruction, [sn:%i] [tid:%i]\n",
                 head_inst->seqNum, tid);
-
+        
+        if (!head_inst->isSquashed() && head_inst->isExecuted() && head_inst->getFault() == NoFault && head_inst->WB_on_retire ) {
+            iewStage->writebackDependents( head_inst );
+        }
+        
         // If the head instruction is squashed, it is ready to retire
         // (be removed from the ROB) at any time.
         if (head_inst->isSquashed()) {

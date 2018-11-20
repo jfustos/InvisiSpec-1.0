@@ -178,6 +178,8 @@ class BaseDynInst : public ExecContext, public RefCounted
     };
 
   public:
+    bool WB_on_retire = false;
+    
     /** The sequence number of the instruction. */
     InstSeqNum seqNum;
 
@@ -1088,7 +1090,10 @@ BaseDynInst<Impl>::initiateMemRead(Addr addr, unsigned size,
             effAddr = req->getVaddr();
             effSize = size;
             instFlags[EffAddrValid] = true;
-
+            
+            if( ( req && req->WB_on_retire ) || ( sreqLow && sreqLow->WB_on_retire ) || ( sreqHigh && sreqHigh->WB_on_retire ) )
+                WB_on_retire = true;
+            
             if (cpu->checker) {
                 if (reqToVerify != NULL) {
                     delete reqToVerify;
