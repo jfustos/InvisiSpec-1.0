@@ -443,6 +443,10 @@ ROB<Impl>::updateVisibleState()
                 }
                 if (prevBrsResolved){
                     inst->setPrevBrsResolved();
+                    if (!inst->isSquashed() && inst->isExecuted() && inst->getFault() == NoFault && inst->WB_on_retire ) {
+                        cpu->iew.writebackDependents( inst );
+                        inst->WB_on_retire = false;
+                    }
                 }
                 if (prevInstsCommitted) {
                     inst->setPrevInstsCommitted();

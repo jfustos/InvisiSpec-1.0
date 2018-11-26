@@ -1037,6 +1037,7 @@ DefaultCommit<Impl>::commitInsts()
         
         if (!head_inst->isSquashed() && head_inst->isExecuted() && head_inst->getFault() == NoFault && head_inst->WB_on_retire ) {
             iewStage->writebackDependents( head_inst );
+            head_inst->WB_on_retire = false;
         }
         
         // If the head instruction is squashed, it is ready to retire
