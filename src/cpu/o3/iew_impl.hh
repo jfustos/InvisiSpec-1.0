@@ -1461,6 +1461,8 @@ DefaultIEW<Impl>::writebackInsts()
         if (!inst->isSquashed() && inst->isExecuted() && inst->getFault() == NoFault && !inst->WB_on_retire ) {
             writebackDependents( inst );
         }
+        
+        inst->WBOR_can_write = true;
     }
 }
 

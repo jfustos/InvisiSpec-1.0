@@ -179,6 +179,7 @@ class BaseDynInst : public ExecContext, public RefCounted
 
   public:
     bool WB_on_retire = false;
+    bool WBOR_can_write = false;
     
     /** The sequence number of the instruction. */
     InstSeqNum seqNum;
